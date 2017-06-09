@@ -61,7 +61,8 @@
 /obj/item/modular_computer/emag_act(var/remaining_charges, var/mob/user)
 	if(computer_emagged)
 		to_chat(user, "\The [src] was already emagged.")
-		return NO_EMAG_ACT
+//		return NO_EMAG_ACT
+		return 0
 	else
 		computer_emagged = 1
 		to_chat(user, "You emag \the [src]. It's screen briefly shows a \"OVERRIDE ACCEPTED: New software downloads available.\" message.")

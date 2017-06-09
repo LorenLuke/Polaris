@@ -20,7 +20,7 @@
 /obj/item/weapon/computer_hardware/ai_slot/attackby(var/obj/item/weapon/W as obj, var/mob/user as mob)
 	if(..())
 		return 1
-	if(istype(W, /obj/item/weapon/aicard))
+	if(istype(W, /obj/item/device/aicard/))
 		if(stored_card)
 			to_chat(user, "\The [src] is already occupied.")
 			return

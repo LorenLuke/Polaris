@@ -145,7 +145,7 @@
 		if(!nano_printer)
 			return
 		nano_printer.attackby(W, user)
-	if(istype(W, /obj/item/weapon/aicard))
+	if(istype(W, /obj/item/device/aicard/))
 		if(!ai_slot)
 			return
 		ai_slot.attackby(W, user)

@@ -16,7 +16,7 @@
 	light_strength = 4
 	max_damage = 300
 	broken_damage = 150
-	w_class = ITEM_SIZE_HUGE
+	w_class = ITEMSIZE_HUGE
 
 /obj/item/modular_computer/telescreen/New()
 	..()

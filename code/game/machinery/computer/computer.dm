@@ -96,8 +96,25 @@
 	return text
 
 /obj/machinery/computer/attackby(I as obj, user as mob)
-	if(computer_deconstruction_screwdriver(user, I))
-		return
+	if(istype(I, /obj/item/weapon/screwdriver) && circuit)
+		playsound(src.loc, 'sound/items/Screwdriver.ogg', 50, 1)
+		if(do_after(user, 20, src))
+			var/obj/structure/frame/computer/A = new /obj/structure/frame/computer( src.loc )
+			var/obj/item/weapon/circuitboard/M = new circuit( A )
+			A.circuit = M
+			A.anchored = 1
+			for (var/obj/C in src)
+				C.dropInto(loc)
+			if (src.stat & BROKEN)
+				to_chat(user, "<span class='notice'>The broken glass falls out.</span>")
+				new /obj/item/weapon/material/shard( src.loc )
+				A.state = 3
+				A.icon_state = "3"
+			else
+				to_chat(user, "<span class='notice'>You disconnect the monitor.</span>")
+				A.state = 4
+				A.icon_state = "4"
+			M.deconstruct(src)
+			qdel(src)
 	else
-		attack_hand(user)
-		return
+		..()

@@ -599,3 +599,6 @@ proc/dd_sortedTextList(list/incoming)
 	for(var/path in subtypesof(prototype))
 		L += new path()
 	return L
+
+
+#define listequal(A, B) (A.len == B.len && !length(A^B))
