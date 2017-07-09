@@ -14,7 +14,8 @@
 	var/name = "Reagent"
 	var/id = "reagent"
 	var/description = "A non-descript chemical."
-	var/taste_description = "bitterness"
+	var/list/taste = list("bitterness" = 1)
+	var/list/taste_adjective = list("null" = 0.4)
 	var/taste_mult = 1 //how this taste compares to others. Higher values means it is more noticable
 	var/datum/reagents/holder = null
 	var/reagent_state = SOLID

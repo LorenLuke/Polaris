@@ -1376,7 +1376,7 @@
 	name = "Pan-Galactic Gargle Blaster"
 	id = "gargleblaster"
 	result = "gargleblaster"
-	required_reagents = list("vodka" = 2, "gin" = 1, "whiskey" = 1, "cognac" = 1, "limejuice" = 1)
+	required_reagents = list("vodka" = 2, "gin" = 1, "whiskey" = 1, "cognac" = 1, "lemonjuice" = 1)
 	result_amount = 6
 
 /datum/chemical_reaction/drinks/brave_bull
@@ -1523,7 +1523,7 @@
 	name = "Gin Fizz"
 	id = "ginfizz"
 	result = "ginfizz"
-	required_reagents = list("gin" = 1, "sodawater" = 1, "limejuice" = 1)
+	required_reagents = list("gin" = 1, "sodawater" = 1, "lemonjuice" = 1)
 	result_amount = 3
 
 /datum/chemical_reaction/drinks/bahama_mama
