@@ -1459,6 +1459,7 @@
 #include "code\modules\integrated_electronics\subtypes\converters.dm"
 #include "code\modules\integrated_electronics\subtypes\data_transfer.dm"
 #include "code\modules\integrated_electronics\subtypes\input_output.dm"
+#include "code\modules\integrated_electronics\subtypes\interface.dm"
 #include "code\modules\integrated_electronics\subtypes\logic.dm"
 #include "code\modules\integrated_electronics\subtypes\manipulation.dm"
 #include "code\modules\integrated_electronics\subtypes\memory.dm"

@@ -1,10 +1,10 @@
 /obj/item/integrated_circuit/transfer
 	category_text = "Data Transfer"
-	autopulse = 1
+	metavars = list("autopulse" = 0)
 	power_draw_per_use = 2
 
 /obj/item/integrated_circuit/transfer/on_data_written()
-	if(autopulse == 1)
+	if(metavars["autopulse"] == 1)
 		check_then_do_work()
 
 /obj/item/integrated_circuit/transfer/splitter
@@ -12,6 +12,7 @@
 	desc = "Splits incoming data into all of the output pins."
 	icon_state = "splitter"
 	complexity = 3
+	activators = list("split data" = 1, "on split" = 0)
 	inputs = list("data to split")
 	outputs = list("A","B")
 	spawn_flags = IC_SPAWN_DEFAULT|IC_SPAWN_RESEARCH
@@ -37,6 +38,7 @@
 	var/datum/integrated_io/I = inputs[1]
 	for(var/datum/integrated_io/output/O in outputs)
 		O.data = I.data
+	activate_pin(2)
 
 /obj/item/integrated_circuit/transfer/activator_splitter
 	name = "activator splitter"

@@ -176,10 +176,18 @@ a creative player the means to solve many problems.  Circuits are held inside an
 	HTML += "</table>"
 	HTML += "</div>"
 
-	if(autopulse != -1)
-		HTML += "<br><font color='33CC33'>Meta Variables;</font>"
-		HTML += "<br><font color='33CC33'><a href='?src=\ref[src];autopulse=1'>\[Autopulse\]</a> = <b>[autopulse ? "ON" : "OFF"]</b></font>"
-		HTML += "<br>"
+	if(metavars.len)
+		var/print = 0
+		for(var/s in metavars)
+			if(metavars[s] != -1)
+				if(!print)
+					HTML += "<br><font color='33CC33'>Meta Variables;</font>"
+					print = 1
+
+				HTML += "<br><font color='33CC33'><a href='?src=\ref[src];metavar=1; metaname = [s];'>\[[s]\]</a> = <b>[metavar[s] ? "ON" : "OFF"]</b></font>"
+				HTML += "<br>"
+
+
 
 	HTML += "<br><font color='0000AA'>Complexity: [complexity]</font>"
 	if(power_draw_idle)
@@ -313,9 +321,12 @@ a creative player the means to solve many problems.  Circuits are held inside an
 		else
 			to_chat(usr, "<span class='warning'>You need a multitool/debugger set to 'ref' mode to do that.</span>")
 
-	if(href_list["autopulse"])
-		if(autopulse != -1)
-			autopulse = !autopulse
+	if(href_list["metavar"])
+
+		var/metaname = href_list["metaname"]
+		var/metavariable = metavars[metaname]
+		if(metavariable != -1)
+			metavariable = !metavariable
 
 	if(href_list["return"])
 		if(A)

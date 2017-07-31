@@ -11,6 +11,7 @@
 	var/max_components = IC_COMPONENTS_BASE
 	var/max_complexity = IC_COMPLEXITY_BASE
 	var/opened = 0
+	var/mounted = 0
 	var/obj/item/weapon/cell/device/battery = null // Internal cell which most circuits need to work.
 
 
@@ -84,8 +85,13 @@
 	return implant
 
 /obj/item/device/electronic_assembly/proc/check_interactivity(mob/user)
-	if(!CanInteract(user, physical_state))
-		return 0
+	if(!mounted)
+		if(!CanInteract(user, physical_state))
+			if(!CanInteract(user, deep_inventory_state))
+				return 0
+	else
+		if(! get_turf(src).Adjacent(get_turf(user)) )
+			return 0
 	return 1
 
 /obj/item/device/electronic_assembly/interact(mob/user)

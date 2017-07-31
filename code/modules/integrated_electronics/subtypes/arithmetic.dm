@@ -14,11 +14,11 @@
 	outputs = list("\<NUM\> result")
 	activators = list("compute" = 1, "on computed" = 0)
 	category_text = "Arithmetic"
-	autopulse = 1
+	metavars = list("autopulse" = 0)
 	power_draw_per_use = 5 // Math is pretty cheap.
 
 /obj/item/integrated_circuit/arithmetic/on_data_written()
-	if(autopulse == 1)
+	if(metavars["autopulse"] == 1)
 		check_then_do_work()
 
 // +Adding+ //

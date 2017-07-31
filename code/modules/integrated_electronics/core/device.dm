@@ -41,7 +41,7 @@
 
 /obj/item/device/assembly/electronic_assembly/pulsed(var/radio = 0)						//Called when another assembly acts on this one, var/radio will determine where it came from for wire calcs
 	if(EA)
-		for(var/obj/item/integrated_circuit/built_in/device_input/I in EA.contents)
+		for(var/obj/item/integrated_circuit/device_input/I in EA.contents)
 			I.do_work()
 		return
 
@@ -55,7 +55,7 @@
 	set src in usr
 	set category = "Object"
 	set name = "Open/Close Device Assembly"
-	set desc = "Open or close device assembly!"
+	set desc = "Open or close the device assembly."
 
 	toggle_open(usr)
 
@@ -69,16 +69,9 @@
 	max_components = IC_COMPONENTS_BASE * 3/4
 	max_complexity = IC_COMPLEXITY_BASE * 3/4
 
-
 /obj/item/device/electronic_assembly/device/New()
 	..()
-	var/obj/item/integrated_circuit/built_in/device_input/input = new(src)
-	var/obj/item/integrated_circuit/built_in/device_output/output = new(src)
+	var/obj/item/integrated_circuit/device_input/built_in/input = new(src)
+	var/obj/item/integrated_circuit/device_output/built_in/output = new(src)
 	input.assembly = src
 	output.assembly = src
-
-/obj/item/device/electronic_assembly/device/check_interactivity(mob/user)
-	if(!CanInteract(user, state = deep_inventory_state))
-		return 0
-	return 1
-

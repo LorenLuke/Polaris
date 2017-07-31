@@ -6,8 +6,7 @@
 #define MAX_FLAG 65535
 
 var/list/same_wires = list()
-// 14 colours, if you're adding more than 14 wires then add more colours here
-var/list/wireColours = list("red", "blue", "green", "darkred", "orange", "brown", "gold", "gray", "cyan", "navy", "purple", "pink", "black", "yellow")
+var/list/wireColours = list("red", "blue", "green", "darkred", "orange", "brown", "gold", "gray", "cyan", "navy", "purple", "pink", "black", "yellow", "white", "lime")
 
 /datum/wires
 
@@ -18,13 +17,16 @@ var/list/wireColours = list("red", "blue", "green", "darkred", "orange", "brown"
 	var/wires_status = 0 // BITFLAG OF WIRES
 
 	var/list/wires = list()
-	var/list/signallers = list()
+	var/list/wire_inputs = list()
+	var/list/wire_outputs = list()
+
+	var/obj/item/device/electronic_assembly/EA
 
 	var/table_options = " align='center'"
 	var/row_options1 = " width='80px'"
 	var/row_options2 = " width='260px'"
-	var/window_x = 370
-	var/window_y = 470
+	var/window_x = 480
+	var/window_y = 480
 
 /datum/wires/New(var/atom/holder)
 	..()
@@ -89,7 +91,7 @@ var/list/wireColours = list("red", "blue", "green", "darkred", "orange", "brown"
 	popup.open()
 
 /datum/wires/proc/GetInteractWindow()
-	var/html = "<div class='block'>"
+	var/html = "<div class='block'>" //Wire block
 	html += "<h3>Exposed Wires</h3>"
 	html += "<table[table_options]>"
 
@@ -97,9 +99,34 @@ var/list/wireColours = list("red", "blue", "green", "darkred", "orange", "brown"
 		html += "<tr>"
 		html += "<td[row_options1]><font color='[colour]'>[capitalize(colour)]</font></td>"
 		html += "<td[row_options2]>"
-		html += "<A href='?src=\ref[src];action=1;cut=[colour]'>[IsColourCut(colour) ? "Mend" :  "Cut"]</A>"
-		html += " <A href='?src=\ref[src];action=1;pulse=[colour]'>Pulse</A>"
-		html += " <A href='?src=\ref[src];action=1;attach=[colour]'>[IsAttached(colour) ? "Detach" : "Attach"] Signaller</A></td></tr>"
+		html += "<A href='?src=\ref[src];cut=[colour]'>[IsColourCut(colour) ? "Mend" :  "Cut"]</A>"
+		html += " <A href='?src=\ref[src];pulse=[colour]'>Pulse In</A>"
+		html += " <A href='?src=\ref[src];pulse=[colour]'>Pulse Out</A>"
+		html += " <A href='?src=\ref[src];metadata=[colour]'>Metadata</A>"
+	html += "</table>"
+	html += "</div>"
+
+
+	html = "<div class='block'>" //Wire block
+	html += "<h3>Interface</h3>"
+	for(var/i = 1 to 4)
+		html += "<tr>"
+		html += "<tdwidth='80px'><A href='?src=\ref[src];wire_input=[i]'>Input [i]</A></td>"
+		if(i == 2)
+			html += "<tdwidth='120px'><A href='?src=\ref[src];assembly=1>[EA?"Remove":"Add"] Assembly</a></td>"
+		else
+			html += "<tdwidth='120px'> </td>"
+		html += "<tdwidth='80px'><A href='?src=\ref[src];wire_output=[i]'>Output [i]</A></td>"
+
+	for(var/i = 1 to 3)
+		html += "<tr>"
+		html += "<tdwidth='80px'><A href='?src=\ref[src];activator_input=[i]'>Input [i]</A></td>"
+		html += "<tdwidth='80px'> </td>"
+		html += "<tdwidth='80px'><A href='?src=\ref[src];activator_output=[i]'>Output [i]</A></td>"
+
+
+
+
 	html += "</table>"
 	html += "</div>"
 
@@ -113,7 +140,7 @@ var/list/wireColours = list("red", "blue", "green", "darkred", "orange", "brown"
 	if(in_range(holder, usr) && isliving(usr))
 
 		var/mob/living/L = usr
-		if(CanUse(L) && href_list["action"])
+		if(CanUse(L))
 			var/obj/item/I = L.get_active_hand()
 			holder.add_hiddenprint(L)
 			if(href_list["cut"]) // Toggles the cut/mend status
@@ -121,14 +148,35 @@ var/list/wireColours = list("red", "blue", "green", "darkred", "orange", "brown"
 					var/colour = href_list["cut"]
 					CutWireColour(colour)
 				else
-					L << "<span class='error'>You need wirecutters!</span>"
+					to_chat(L, "<span class='error'>You need wirecutters!</span>")
 
 			else if(href_list["pulse"])
 				if(istype(I, /obj/item/device/multitool))
 					var/colour = href_list["pulse"]
 					PulseColour(colour)
 				else
-					L << "<span class='error'>You need a multitool!</span>"
+					to_chat(L, "<span class='error'>You need proper tools!</span>")
+
+			else if(href_list["metadata"])
+				if(istype(I, /obj/item/device/multitool))
+					var/colour = href_list["pulse"]
+					PulseColour(colour)
+				else
+					to_chat(L, "<span class='error'>You need proper tools!</span>")
+
+			else if(href_list["wire_input"])
+				if(istype(I, /obj/item/device/multitool))
+					var/colour = href_list["pulse"]
+					PulseColour(colour)
+				else
+					to_chat(L, "<span class='error'>You need proper tools!</span>")
+
+			else if(href_list["wire_output"])
+				if(istype(I, /obj/item/device/multitool))
+					var/colour = href_list["pulse"]
+					PulseColour(colour)
+				else
+					to_chat(L, "<span class='error'>You need proper tools!</span>")
 
 			else if(href_list["attach"])
 				var/colour = href_list["attach"]
@@ -140,11 +188,11 @@ var/list/wireColours = list("red", "blue", "green", "darkred", "orange", "brown"
 
 				// Attach
 				else
-					if(istype(I, /obj/item/device/assembly/signaler))
+					if(istype(I, /obj/item/device/assembly))
 						L.drop_item()
 						Attach(colour, I)
 					else
-						L << "<span class='error'>You need a remote signaller!</span>"
+						L << "<span class='error'>You need an assembly!</span>"
 
 
 
@@ -155,6 +203,7 @@ var/list/wireColours = list("red", "blue", "green", "darkred", "orange", "brown"
 	if(href_list["close"])
 		usr << browse(null, "window=wires")
 		usr.unset_machine(holder)
+
 
 //
 // Overridable Procs
@@ -223,10 +272,11 @@ var/const/POWER = 8
 /datum/wires/proc/IsIndexCut(var/index)
 	return (index & wires_status)
 
-//
-// Signaller Procs
-//
 
+
+//
+// Assembly Procs
+//
 /datum/wires/proc/IsAttached(var/colour)
 	if(signallers[colour])
 		return 1
@@ -237,10 +287,10 @@ var/const/POWER = 8
 		return signallers[colour]
 	return null
 
-/datum/wires/proc/Attach(var/colour, var/obj/item/device/assembly/signaler/S)
+/datum/wires/proc/Attach(var/colour, var/obj/item/device/assembly/S)
 	if(colour && S)
 		if(!IsAttached(colour))
-			signallers[colour] = S
+			assemblies[colour] = S
 			S.loc = holder
 			S.connected = src
 			return S
@@ -249,16 +299,16 @@ var/const/POWER = 8
 	if(colour)
 		var/obj/item/device/assembly/signaler/S = GetAttached(colour)
 		if(S)
-			signallers -= colour
+			assemblies -= colour
 			S.connected = null
 			S.loc = holder.loc
 			return S
 
 
-/datum/wires/proc/Pulse(var/obj/item/device/assembly/signaler/S)
+/datum/wires/proc/Pulse(var/obj/item/device/assembly/S)
 
-	for(var/colour in signallers)
-		if(S == signallers[colour])
+	for(var/colour in assemblies)
+		if(S == assemblies[colour])
 			PulseColour(colour)
 			break
 

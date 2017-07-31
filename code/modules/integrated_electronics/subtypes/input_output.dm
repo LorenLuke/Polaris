@@ -83,7 +83,7 @@
 	complexity = 4
 	inputs = list("\<REF\> target")
 	outputs = list("\<NUM\> total health %", "\<NUM\> total missing health")
-	activators = list("scan" = 1, "on scanned" = 0)
+	activators = list("scan" = 1, "on activate" = 0, "on scanned" = 0)
 	spawn_flags = IC_SPAWN_DEFAULT|IC_SPAWN_RESEARCH
 	origin_tech = list(TECH_ENGINEERING = 2, TECH_DATA = 2, TECH_BIO = 2)
 	power_draw_per_use = 40
@@ -92,15 +92,19 @@
 	var/mob/living/carbon/human/H = get_pin_data_as_type(IC_INPUT, 1, /mob/living/carbon/human)
 	if(!istype(H)) //Invalid input
 		return
+	var/scanned = 0
 	if(H.Adjacent(get_turf(src))) // Like normal analysers, it can't be used at range.
 		var/total_health = round(H.health/H.getMaxHealth(), 0.1)*100
 		var/missing_health = H.getMaxHealth() - H.health
 
 		set_pin_data(IC_OUTPUT, 1, total_health)
 		set_pin_data(IC_OUTPUT, 2, missing_health)
+		scanned = 1
 
 	push_data()
 	activate_pin(2)
+	if(scanned)
+		activate_pin(3)
 
 /obj/item/integrated_circuit/input/adv_med_scanner
 	name = "integrated advanced medical analyser"
@@ -148,18 +152,23 @@
 	that is holding the machine containing it."
 	inputs = list()
 	outputs = list("located ref")
-	activators = list("locate" = 1)
+	activators = list("locate" = 1, "on activate" = 0, "on locate" = 0)
 	spawn_flags = IC_SPAWN_DEFAULT|IC_SPAWN_RESEARCH
 	power_draw_per_use = 20
 
 /obj/item/integrated_circuit/input/local_locator/do_work()
 	var/datum/integrated_io/O = outputs[1]
 	O.data = null
+	var/scanned = 0
 	if(assembly)
 		if(istype(assembly.loc, /mob/living)) // Now check if someone's holding us.
 			O.data = weakref(assembly.loc)
-
+			scanned = 1
 	O.push_data()
+
+	activate_pin(2)
+	if(scanned)
+		activate_pin(3)
 
 /obj/item/integrated_circuit/input/adjacent_locator
 	name = "adjacent locator"
@@ -170,7 +179,7 @@
 	random."
 	inputs = list("desired type ref")
 	outputs = list("located ref")
-	activators = list("locate" = 1)
+	activators = list("locate" = 1, "on activated" = 0, "on scanned" = 1)
 	spawn_flags = IC_SPAWN_DEFAULT|IC_SPAWN_RESEARCH
 	power_draw_per_use = 30
 
@@ -178,7 +187,7 @@
 	var/datum/integrated_io/I = inputs[1]
 	var/datum/integrated_io/O = outputs[1]
 	O.data = null
-
+	var/scanned = 0
 	if(!isweakref(I.data))
 		return
 	var/atom/A = I.data.resolve()
@@ -194,7 +203,12 @@
 		valid_things.Add(thing)
 	if(valid_things.len)
 		O.data = weakref(pick(valid_things))
+		scanned = 1
 	O.push_data()
+
+	activate_pin(2)
+	if(scanned)
+		activate_pin(3)
 
 /obj/item/integrated_circuit/input/signaler
 	name = "integrated signaler"
@@ -332,7 +346,7 @@
 	complexity = 4
 	inputs = list()
 	outputs = list("\<NUM\> X", "\<NUM\> Y")
-	activators = list("get coordinates" = 1, "on get coordinates" = 0)
+	activators = list("get coordinates" = 1, "on activated" = 0, "on get coordinates" = 0)
 	spawn_flags = IC_SPAWN_DEFAULT|IC_SPAWN_RESEARCH
 	power_draw_per_use = 30
 
@@ -342,6 +356,7 @@
 	set_pin_data(IC_OUTPUT, 1, null)
 	set_pin_data(IC_OUTPUT, 2, null)
 	if(!T)
+		activate_pin(2)
 		return
 
 	set_pin_data(IC_OUTPUT, 1, T.x)
@@ -349,6 +364,7 @@
 
 	push_data()
 	activate_pin(2)
+	activate_pin(3)
 
 
 /obj/item/integrated_circuit/input/microphone
@@ -361,7 +377,7 @@
 	complexity = 8
 	inputs = list()
 	outputs = list("\<TEXT\> speaker", "\<TEXT\> message")
-	activators = list("on message received" = 1, "on translation" = 0)
+	activators = list("on message received" = 0, "on translation" = 0)
 	spawn_flags = IC_SPAWN_DEFAULT|IC_SPAWN_RESEARCH
 	power_draw_per_use = 15
 
@@ -399,19 +415,22 @@
 	complexity = 12
 	inputs = list("\<NUM\> ignore storage" = 1)
 	outputs = list("\<REF\> scanned")
-	activators = list("on scanned" = 0)
+	activators = list("scan" = 1, "on activated" = 0, "on scanned" = 0)
 	spawn_flags = IC_SPAWN_DEFAULT|IC_SPAWN_RESEARCH
 	power_draw_per_use = 120
 
 /obj/item/integrated_circuit/input/sensor/proc/scan(var/atom/A)
 	var/ignore_bags = get_pin_data(IC_INPUT, 1)
+	var/scanned = 0
 	if(ignore_bags)
 		if(istype(A, /obj/item/weapon/storage))
+			activate_pin(2)
 			return FALSE
 
 	set_pin_data(IC_OUTPUT, 1, weakref(A))
 	push_data()
-	activate_pin(1)
+	activate_pin(2)
+	activate_pin(3)
 	return TRUE
 
 /obj/item/integrated_circuit/output
@@ -423,10 +442,10 @@
 	icon_state = "screen"
 	inputs = list("\<TEXT/NUM\> displayed data")
 	outputs = list()
-	activators = list("load data" = 1)
+	activators = list("load data" = 1, "on data loaded" = 0)
 	spawn_flags = IC_SPAWN_DEFAULT|IC_SPAWN_RESEARCH
 	power_draw_per_use = 10
-	autopulse = 1
+	metavars = list("autopulse" = 0)
 	var/stuff_to_display = null
 
 
@@ -445,6 +464,7 @@
 			stuff_to_display = "[d]"
 	else
 		stuff_to_display = I.data
+	activate_pin(2)
 
 /obj/item/integrated_circuit/output/screen/medium
 	name = "screen"

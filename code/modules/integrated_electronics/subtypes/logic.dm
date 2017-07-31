@@ -6,11 +6,11 @@
 	outputs = list("result")
 	activators = list("compare" = 1)
 	category_text = "Logic"
-	autopulse = 1
+	metavars = list("autopulse" = 0)
 	power_draw_per_use = 1
 
 /obj/item/integrated_circuit/logic/on_data_written()
-	if(autopulse == 1)
+	if(metavars["autopulse"] == 1)
 		check_then_do_work()
 
 /obj/item/integrated_circuit/logic/do_work()

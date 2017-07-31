@@ -18,6 +18,8 @@
 	outputs = list()
 	activators = list(
 		"fire" = 1
+		"on activated" = 0
+		"on fire" = 0
 	)
 	var/obj/item/weapon/gun/installed_gun = null
 	spawn_flags = IC_SPAWN_RESEARCH
@@ -69,6 +71,7 @@
 		var/turf/T = get_turf(src.assembly)
 
 		if(target_x.data == 0 && target_y.data == 0) // Don't shoot ourselves.
+			activate_pin(2)
 			return
 
 		// We need to do this in order to enable relative coordinates, as locate() only works for absolute coordinates.
@@ -97,45 +100,11 @@
 				i--
 
 		if(!T)
+			activate_pin(2)
 			return
 		installed_gun.Fire_userless(T)
-
-/obj/item/integrated_circuit/manipulation/locomotion
-	name = "locomotion circuit"
-	desc = "This allows a machine to move in a given direction."
-	icon_state = "locomotion"
-	extended_desc = "The circuit accepts a number as a direction to move towards.<br>  \
-	North/Fore = 1,<br>\
-	South/Aft = 2,<br>\
-	East/Starboard = 4,<br>\
-	West/Port = 8,<br>\
-	Northeast = 5,<br>\
-	Northwest = 9,<br>\
-	Southeast = 6,<br>\
-	Southwest = 10<br>\
-	<br>\
-	Pulsing the 'step towards dir' activator pin will cause the machine to move a meter in that direction, assuming it is not \
-	being held, or anchored in some way.  It should be noted that the ability to move is dependant on the type of assembly that this circuit inhabits."
-	w_class = ITEMSIZE_NORMAL
-	complexity = 20
-//	size = 5
-	inputs = list("dir num")
-	outputs = list()
-	activators = list("step towards dir" = 1)
-	spawn_flags = IC_SPAWN_RESEARCH
-	power_draw_per_use = 100
-
-/obj/item/integrated_circuit/manipulation/locomotion/do_work()
-	..()
-	var/turf/T = get_turf(src)
-	if(T && assembly)
-		if(assembly.anchored || !assembly.can_move())
-			return
-		if(assembly.loc == T) // Check if we're held by someone.  If the loc is the floor, we're not held.
-			var/datum/integrated_io/wanted_dir = inputs[1]
-			if(isnum(wanted_dir.data))
-				step(assembly, wanted_dir.data)
-
+		activate_pin(2)
+		activate_pin(3)
 
 /obj/item/integrated_circuit/manipulation/grenade
 	name = "grenade primer"
@@ -148,7 +117,7 @@
 	size = 2
 	inputs = list("\<NUM\> detonation time")
 	outputs = list()
-	activators = list("prime grenade" = 1)
+	activators = list("prime grenade" = 1, "on activation" = 0)
 	spawn_flags = IC_SPAWN_RESEARCH
 	origin_tech = list(TECH_ENGINEERING = 3, TECH_DATA = 3, TECH_COMBAT = 4)
 	var/obj/item/weapon/grenade/attached_grenade
@@ -193,6 +162,7 @@
 		attached_grenade.activate()
 		var/atom/holder = loc
 		log_and_message_admins("activated a grenade assembly. Last touches: Assembly: [holder.fingerprintslast] Circuit: [fingerprintslast] Grenade: [attached_grenade.fingerprintslast]")
+	activate_pin(2)
 
 // These procs do not relocate the grenade, that's the callers responsibility
 /obj/item/integrated_circuit/manipulation/grenade/proc/attach_grenade(var/obj/item/weapon/grenade/G)
@@ -213,3 +183,129 @@
 	pre_attached_grenade_type = /obj/item/weapon/grenade/explosive
 	origin_tech = list(TECH_ENGINEERING = 3, TECH_DATA = 3, TECH_COMBAT = 10)
 	spawn_flags = null			// Used for world initializing, see the #defines above.
+
+
+
+/obj/item/integrated_circuit/manipulation/locomotion
+	name = "locomotion circuit"
+	desc = "This allows a machine to move in a given direction."
+	icon_state = "locomotion"
+	extended_desc = "The circuit accepts a number as a direction to move towards.<br>  \
+	North/Fore = 1,<br>\
+	South/Aft = 2,<br>\
+	East/Starboard = 4,<br>\
+	West/Port = 8,<br>\
+	Northeast = 5,<br>\
+	Northwest = 9,<br>\
+	Southeast = 6,<br>\
+	Southwest = 10<br>\
+	<br>\
+	Pulsing the 'step towards dir' activator pin will cause the machine to move a meter in that direction, assuming it is not \
+	being held, or anchored in some way.  It should be noted that the ability to move is dependant on the type of assembly that this circuit inhabits."
+	w_class = ITEMSIZE_NORMAL
+	complexity = 20
+	size = 5
+	inputs = list("\NUM\ dir num")
+	outputs = list()
+	activators = list("step towards dir" = 1, "on activation" = 0, "on step" = 0)
+	spawn_flags = IC_SPAWN_RESEARCH
+	power_draw_per_use = 100
+
+/obj/item/integrated_circuit/manipulation/locomotion/do_work()
+	..()
+	var/turf/T = get_turf(src)
+	if(T && assembly)
+		if(assembly.anchored || !assembly.can_move())
+			activate_pin(2)
+			return
+		if(assembly.loc == T) // Check if we're held by someone.  If the loc is the floor, we're not held.
+			var/datum/integrated_io/wanted_dir = inputs[1]
+			if(isnum(wanted_dir.data))
+				step(assembly, wanted_dir.data)
+	activate_pin(2)
+	activate_pin(3)
+
+/*
+/obj/item/integrated_circuit/manipulation/loader
+	name = "locomotion circuit"
+	desc = "This allows a machine to move in a given direction."
+	icon_state = "locomotion"
+	extended_desc = "The circuit accepts a number as a direction to load from.<br>  \
+	On Tile = 0,<br>\
+	North/Fore = 1,<br>\
+	South/Aft = 2,<br>\
+	East/Starboard = 4,<br>\
+	West/Port = 8,<br>\
+	Northeast = 5,<br>\
+	Northwest = 9,<br>\
+	Southeast = 6,<br>\
+	Southwest = 10<br>\
+	<br>\
+	It will load any item, but first attempt to load the type of the 'prioritised item'.<br>\
+	Pulsing the 'un/load dir' activator pin will cause the machine to attempt to un/load from the adjacent tile in that direction, based on the 'un\load variable' (0 to load, 1 to unload).\
+	It should be noted that the ability to load an item is dependant on the type of assembly that this circuit inhabits."
+	w_class = ITEMSIZE_LARGE
+	complexity = 40
+	size = 10
+	cooldown_per_use = 4 SECONDS
+	inputs = list("\NUM\ un/load dir", "\NUM\ Load/Unload", "\REF\ Prioritized item")
+	outputs = list()
+	activators = list("activate" = 1, "on activation" = 0, "on load" = 0, "on unload" = 0)
+//	spawn_flags = IC_SPAWN_RESEARCH
+	power_draw_per_use = 100
+
+/obj/item/integrated_circuit/manipulation/loader/do_work()
+	..()
+	var/datum/integrated_io/dir = inputs[1]
+	var/datum/integrated_io/mode = inputs[2]
+	var/datum/integrated_io/item = inputs[3]
+	var/turf/T = get_turf(src)
+	var/turf/step_turf
+	if(dir)
+		step_turf = get_step(T,dir)
+	else
+		step_turf = T
+
+	if(!mode)
+
+		//load
+		var/list/templist = list()
+		var/targetthing
+		for(var/S in T.contents)
+			if(istype(S, /area))
+				continue
+			if(istype(S, /turf))
+				continue
+			if(S == src)
+				continue
+			if(S == item || istype(S, item.type))
+				S = targetthing
+				break
+
+			templist.add(S)
+
+		if(!targetthing && templist.len)
+			targetthing = templist[1]
+		else
+			activate_pin(2)
+			return
+	else
+
+		//unload
+
+
+	if(T && assembly)
+		if(assembly.anchored || !assembly.can_move())
+			return
+		if(assembly.loc == T) // Check if we're held by someone.  If the loc is the floor, we're not held.
+			var/datum/integrated_io/wanted_dir = inputs[1]
+			if(isnum(wanted_dir.data))
+				step(assembly, wanted_dir.data)
+	activate_pin(2)
+	if(mode)
+		activate_pin(4)
+	else
+		activate_pin(3)
+
+
+*/

@@ -5,11 +5,11 @@
 	outputs = list("output")
 	activators = list("convert" = 1, "on convert" = 0)
 	category_text = "Converter"
-	autopulse = 1
+	metavars = list("autopulse" = 0)
 	power_draw_per_use = 10
 
 /obj/item/integrated_circuit/converter/on_data_written()
-	if(autopulse == 1)
+	if(metavars["autopulse"] == 1)
 		check_then_do_work()
 
 /obj/item/integrated_circuit/converter/num2text
